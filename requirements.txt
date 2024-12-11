@@ -1,0 +1,11 @@
+lakefs-client
+pandas
+numpy
+scikit-learn
+tensorflow
+mlflow
+fastapi
+uvicorn
+gunicorn
+evidently
+docker
