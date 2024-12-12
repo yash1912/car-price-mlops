@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/948899775963930336/ab5212ea51d244e3825fed1b75586ed3/artifacts
+end_time: 1733988652489
+entry_point_name: ''
+experiment_id: '948899775963930336'
+lifecycle_stage: active
+run_id: ab5212ea51d244e3825fed1b75586ed3
+run_name: salty-eel-851
+run_uuid: ab5212ea51d244e3825fed1b75586ed3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733988642726
+status: 3
+tags: []
+user_id: yash

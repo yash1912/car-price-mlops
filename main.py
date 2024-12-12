@@ -5,7 +5,7 @@ import logging
 import sys
 from evidently import ColumnMapping
 from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset, RegressionPreset
+from evidently.metric_preset import DataDriftPreset, RegressionPreset, TargetDriftPreset
 import argparse
 import config
 import webbrowser
@@ -57,6 +57,7 @@ with mlflow.start_run():
 
     # Modify test data and re-evaluate
     X_test_modified = utils.modify_test_data(X_test)
+    X_test_modified.to_csv("data/X_test_modified.csv", index=False)
     rmse_modified, mse_modified, mae_modified = utils.evaluate_model(
         tuned_rf_model,
         X_test_modified.drop(columns=["Selling_Price", "price_preds"], errors="ignore"),
@@ -94,6 +95,8 @@ with mlflow.start_run():
     # Generate regression report
     regression_report = Report(metrics=[RegressionPreset()])
     regression_report.run(reference_data=X_train_regression, current_data=X_test_regression, column_mapping=column_mapping)
+    X_train_regression.to_csv("data/X_train_regression.csv", index=False)
+    X_test_regression.to_csv("data/X_test_regression.csv", index=False)
     regression_report.save_html(config.REGRESSION_REPORT_PATH)
     logger.info(f"Regression report saved to {config.REGRESSION_REPORT_PATH}")
     webbrowser.open_new_tab("file:///" + config.REGRESSION_REPORT_PATH)
@@ -101,21 +104,22 @@ with mlflow.start_run():
     # Modified Test Data Drift Report
     modified_data_drift_report = Report(metrics=[DataDriftPreset()])
     modified_data_drift_report.run(reference_data=X_train_clean, current_data=X_test_modified_clean, column_mapping=column_mapping)
+    X_test_modified_clean.to_csv("data/X_test_modified_clean.csv", index=False)
     modified_data_drift_report.save_html("monitoring_report_modified_drift.html")
     logger.info("Modified Data Drift Report saved as monitoring_report_modified_drift.html")
-    webbrowser.open_new_tab("file:///monitoring_report_modified_drift.html")
+    webbrowser.open_new_tab("file:///" + config.MODIFIED_MONITORING_REPORT_PATH)
 
     # Modified Test Data Regression Report
     X_test_modified_regression = X_test_modified_clean.copy()
     X_test_modified_regression[config.TARGET_COLUMN] = y_test.loc[X_test_modified_clean.index]
     X_test_modified_regression[config.PREDICTION_COLUMN] = tuned_rf_model.predict(X_test_modified_clean)
-
     modified_regression_report = Report(metrics=[RegressionPreset()])
     modified_regression_report.run(
         reference_data=X_train_regression,
         current_data=X_test_modified_regression,
         column_mapping=column_mapping
     )
+    X_test_modified_regression.to_csv("data/X_test_modified_regression.csv", index=False)
     modified_regression_report.save_html("monitoring_report_modified_regression.html")
     logger.info("Modified Regression Report saved as monitoring_report_modified_regression.html")
-    webbrowser.open_new_tab("file:///monitoring_report_modified_regression.html")
+    webbrowser.open_new_tab("file:///" + config.MODIFIED_REGRESSION_REPORT_PATH)

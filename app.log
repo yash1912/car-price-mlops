@@ -35,3 +35,10 @@ Data drift report saved to monitoring_report.html
 Regression report saved to regression_report.html
 Modified Data Drift Report saved as monitoring_report_modified_drift.html
 Modified Regression Report saved as monitoring_report_modified_regression.html
+Created lakeFS repository: {'id': 'mlops-final', 'creation_date': 1733988642, 'default_branch': 'main', 'storage_namespace': 'local://mlops-final'}
+Pushed data to lakeFS
+Data drift report saved to monitoring_report.html
+Regression report saved to regression_report.html
+Modified Data Drift Report saved as monitoring_report_modified_drift.html
+Modified Regression Report saved as monitoring_report_modified_regression.html
+Repository mlops-final already exists

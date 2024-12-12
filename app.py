@@ -1,54 +1,141 @@
-from flask import Flask, render_template, request
-import pickle
-import numpy as np
-import config
+from fastapi import FastAPI, File, UploadFile, Form
+from fastapi.responses import JSONResponse
+import pandas as pd
 import utils
+import config
+import os
+import pickle
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset, RegressionPreset
+from evidently import ColumnMapping
+from typing import Optional
 
-app = Flask(__name__)
-model = utils.load_model(config.MODEL_PATH) # Load model using utils function
-@app.route('/',methods=['GET'])
-def Home():
-    return render_template('index.html')
+app = FastAPI()
+X_train_regression = pd.read_csv("data/X_train_regression.csv")
+X_train = pd.read_csv("data/X_train.csv")
+y_test = pd.read_csv("data/y_test.csv")
+# Load the pre-trained model
+model = pickle.load(open(config.MODEL_PATH, 'rb'))
+X_train[config.PREDICTION_COLUMN] = model.predict(X_train)
+X_train['Selling_price'] = pd.read_csv("data/y_train.csv")
 
+# Health check route
+@app.get("/")
+def read_root():
+    return {"message": "API is up and running!"}
 
-@app.route("/predict", methods=['POST'])
-def predict():
-    Fuel_Type_Diesel=0
-    if request.method == 'POST':
-        Year = int(request.form['Year'])
-        Present_Price=float(request.form['Present_Price'])
-        Kms_Driven=int(request.form['Kms_Driven'])
+# Predict route for a single example
+@app.post("/predict_single")
+def predict_single(
+    Year: int = Form(...),
+    Present_Price: float = Form(...),
+    Kms_Driven: int = Form(...),
+    Owner: int = Form(...),
+    Fuel_Type: str = Form(...),
+    Seller_Type: str = Form(...),
+    Transmission: str = Form(...)
+):
+    # Preprocess inputs
+    Fuel_Type_Diesel = 0
+    Fuel_Type_Petrol = 0
+    if Fuel_Type == 'Petrol':
+        Fuel_Type_Petrol = 1
+    elif Fuel_Type == 'Diesel':
+        Fuel_Type_Diesel = 1
 
-        Owner=int(request.form['Owner'])
-        Fuel_Type_Petrol=request.form['Fuel_Type_Petrol']
-        if (Fuel_Type_Petrol=='Petrol'):
-                Fuel_Type_Petrol=1
-                Fuel_Type_Diesel=0
-        elif (Fuel_Type_Petrol=='Diesel'):
-            Fuel_Type_Petrol=0
-            Fuel_Type_Diesel=1
-        else:
-            Fuel_Type_Petrol=0
-            Fuel_Type_Diesel=0
-        Year=2020-Year
-        Seller_Type_Individual=request.form['Seller_Type_Individual']
-        if(Seller_Type_Individual=='Individual'):
-            Seller_Type_Individual=1
-        else:
-            Seller_Type_Individual=0	
-        Transmission_Mannual=request.form['Transmission_Mannual']
-        if(Transmission_Mannual=='Mannual'):
-            Transmission_Mannual=1
-        else:
-            Transmission_Mannual=0
-        prediction=model.predict([[Present_Price,Owner,Year,Fuel_Type_Diesel,Fuel_Type_Petrol,Seller_Type_Individual,Transmission_Mannual]])
-        output=round(prediction[0],2)
-        if output<0:
-            return render_template('index.html',prediction_texts="Sorry you cannot sell this car")
-        else:
-            return render_template('index.html',prediction_text="You Can Sell The Car at {}".format(output))
-    else:
-        return render_template('index.html')
+    Year = 2020 - Year
+    Seller_Type_Individual = 1 if Seller_Type == 'Individual' else 0
+    Transmission_Mannual = 1 if Transmission == 'Manual' else 0
 
-if __name__=="__main__":
-    app.run(debug=True)
+    # Prepare data for prediction
+    input_data = [[
+        Present_Price, Kms_Driven, Owner, Year,
+        Fuel_Type_Diesel, Fuel_Type_Petrol,
+        Seller_Type_Individual, Transmission_Mannual
+    ]]
+    
+    # Predict
+    prediction = model.predict(input_data)
+    output = round(prediction[0], 2)
+
+    return {"predicted_selling_price": output}
+
+# Batch prediction and generate Evidently reports
+@app.post("/predict_batch")
+async def predict_batch(file: UploadFile = File(...)):
+    # Load the uploaded file
+    file_location = f"temp_{file.filename}"
+    with open(file_location, "wb") as f:
+        f.write(file.file.read())
+
+    try:
+        # Read the file into a DataFrame
+        X_test = pd.read_csv(file_location)
+
+        # Preprocess the data
+        # def preprocess_batch_data(row):
+        #     Fuel_Type_Diesel = 0
+        #     Fuel_Type_Petrol = 0
+        #     if row['Fuel_Type'] == 'Petrol':
+        #         Fuel_Type_Petrol = 1
+        #     elif row['Fuel_Type'] == 'Diesel':
+        #         Fuel_Type_Diesel = 1
+
+        #     Year = 2020 - row['Year']
+        #     Seller_Type_Individual = 1 if row['Seller_Type'] == 'Individual' else 0
+        #     Transmission_Mannual = 1 if row['Transmission'] == 'Manual' else 0
+
+        #     return [
+        #         row['Present_Price'], row['Kms_Driven'], row['Owner'], Year,
+        #         Fuel_Type_Diesel, Fuel_Type_Petrol, Seller_Type_Individual, Transmission_Mannual
+        #     ]
+
+        # # Apply preprocessing to each row
+        # preprocessed_data = X_test.apply(preprocess_batch_data, axis=1, result_type='expand')
+        # preprocessed_data.columns = [
+        #     'Present_Price', 'Kms_Driven', 'Owner', 'Year',
+        #     'Fuel_Type_Diesel', 'Fuel_Type_Petrol',
+        #     'Seller_Type_Individual', 'Transmission_Mannual'
+        # ]
+        preprocessed_data = X_test.copy()
+
+        # Generate predictions
+        preprocessed_data[config.PREDICTION_COLUMN] = model.predict(preprocessed_data)
+        preprocessed_data[config.TARGET_COLUMN] = y_test.values
+        # Save the predictions as a new CSV
+        predictions_file = "predictions.csv"
+        preprocessed_data.to_csv(predictions_file, index=False)
+
+        # Column mapping for Evidently
+        column_mapping = ColumnMapping()
+        column_mapping.target = config.TARGET_COLUMN
+        column_mapping.prediction = config.PREDICTION_COLUMN
+
+        # Generate Data Drift Report
+        data_drift_report = Report(metrics=[DataDriftPreset()])
+        data_drift_report.run(reference_data=X_train, current_data=preprocessed_data, column_mapping=column_mapping)
+        data_drift_path = config.PREDICTED_DATA_DRIFT_REPORT_PATH
+        data_drift_report.save_html(data_drift_path)
+
+        # Generate Regression Report
+        regression_report = Report(metrics=[RegressionPreset()])
+        regression_report.run(reference_data=X_train_regression, current_data=preprocessed_data, column_mapping=column_mapping)
+        regression_path = config.PREDICTED_REGRESSION_REPORT_PATH
+        regression_report.save_html(regression_path)
+
+        return {
+            "status": "success",
+            "message": "Predictions and reports generated successfully.",
+            "predictions_file": predictions_file,
+            "data_drift_report": data_drift_path,
+            "regression_report": regression_path
+        }
+    finally:
+        # Clean up the uploaded file
+        if os.path.exists(file_location):
+            os.remove(file_location)
+
+# Run the application
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
