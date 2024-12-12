@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 import pandas as pd
 import utils
 import config
@@ -128,18 +128,55 @@ async def predict_batch(file: UploadFile = File(...)):
         label_drift_path = config.PREDICTED_LABEL_DRIFT_REPORT_PATH
         label_drift_report.save_html(label_drift_path)
 
-        return {
-            "status": "success",
-            "message": "Predictions and reports generated successfully.",
-            "predictions_file": predictions_file,
-            "data_drift_report": data_drift_path,
-            "regression_report": regression_path
-        }
+        # return {
+        #     "status": "success",
+        #     "message": "Predictions and reports generated successfully.",
+        #     "predictions_file": predictions_file,
+        #     "data_drift_report": data_drift_path,
+        #     "regression_report": regression_path
+        # }
+        return HTMLResponse(content=f"""
+        <html>
+            <head><title>Reports</title></head>
+            <body>
+                <h1>Generated Reports</h1>
+                <a href="/view_report?report_type=data_drift" target="_blank">View Data Drift Report</a><br>
+                <a href="/view_report?report_type=regression" target="_blank">View Regression Report</a>
+                <a href="/view_report?report_type=label_drift" target="_blank">View Prediction Report</a>
+            </body>
+        </html>
+        """)
     finally:
         # Clean up the uploaded file
         if os.path.exists(file_location):
             os.remove(file_location)
+# Endpoint to serve the generated HTML report
+@app.get("/view_report")
+def view_report(report_type: str):
+    """
+    View the generated report based on the report type.
 
+    Parameters:
+    - report_type: Type of report ("data_drift" or "regression").
+
+    Returns:
+    - HTML content of the selected report.
+    """
+    if report_type == "data_drift":
+        report_path = config.PREDICTED_DATA_DRIFT_REPORT_PATH
+    elif report_type == "regression":
+        report_path = config.PREDICTED_REGRESSION_REPORT_PATH
+    elif report_type == "label_drift":
+        report_path = config.PREDICTED_LABEL_DRIFT_REPORT_PATH
+    else:
+        return JSONResponse(content={"error": "Invalid report type."}, status_code=400)
+
+    if os.path.exists(report_path):
+        with open(report_path, "r") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    else:
+        return JSONResponse(content={"error": "Report file not found."}, status_code=404)
 # Run the application
 if __name__ == "__main__":
     import uvicorn
