@@ -1,7 +1,10 @@
 # 🚗 **Resale Price Prediction of Used Cars**
 
+## **Project Memebers**
+Yash, Arushi, Nia, Praveen
+
 ## **Overview**
-This project aims to build a machine learning pipeline to predict the resale price of used cars based on features such as manufacturing year, present market price, kilometers driven, and ownership history. The solution was developed using AutoML to refine the selection of algorithms and optimize model performance.
+This project aims to build a machine-learning pipeline to predict the resale price of used cars based on features such as manufacturing year, present market price, kilometers driven, and ownership history. The solution was developed using AutoML to refine the selection of algorithms and optimize model performance.
 
 ---
 
