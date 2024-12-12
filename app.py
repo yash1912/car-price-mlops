@@ -6,7 +6,7 @@ import config
 import os
 import pickle
 from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset, RegressionPreset
+from evidently.metric_preset import DataDriftPreset, RegressionPreset, TargetDriftPreset 
 from evidently import ColumnMapping
 from typing import Optional
 
@@ -100,7 +100,7 @@ async def predict_batch(file: UploadFile = File(...)):
         # Generate predictions
         preprocessed_data[config.PREDICTION_COLUMN] = model.predict(preprocessed_data)
         # Save the predictions as a new CSV
-        predictions_file = "predictions.csv"
+        predictions_file = config.PREDICTIONS_PATH
         preprocessed_data.to_csv(predictions_file, index=False)
         preprocessed_data[config.TARGET_COLUMN] = X_test_regression[config.TARGET_COLUMN]
 
@@ -120,6 +120,13 @@ async def predict_batch(file: UploadFile = File(...)):
         regression_report.run(reference_data=X_train_regression, current_data=preprocessed_data, column_mapping=column_mapping)
         regression_path = config.PREDICTED_REGRESSION_REPORT_PATH
         regression_report.save_html(regression_path)
+
+        label_drift_report = Report(metrics=[TargetDriftPreset()])
+        column_mapping = ColumnMapping()
+        column_mapping.prediction = config.PREDICTION_COLUMN
+        label_drift_report.run(reference_data=X_test_regression, current_data=preprocessed_data, column_mapping=column_mapping)
+        label_drift_path = config.PREDICTED_LABEL_DRIFT_REPORT_PATH
+        label_drift_report.save_html(label_drift_path)
 
         return {
             "status": "success",
