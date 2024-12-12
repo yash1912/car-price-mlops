@@ -88,6 +88,8 @@ with mlflow.start_run():
     # Generate data drift report
     data_drift_report = Report(metrics=[DataDriftPreset()])
     data_drift_report.run(reference_data=X_train_clean, current_data=X_test_clean, column_mapping=column_mapping)
+    X_train_clean.to_csv("data/X_train_clean.csv", index=False)
+    X_test_clean.to_csv("data/X_test_clean.csv", index=False)
     data_drift_report.save_html(config.MONITORING_REPORT_PATH)
     logger.info(f"Data drift report saved to {config.MONITORING_REPORT_PATH}")
     webbrowser.open_new_tab("file:///" + config.MONITORING_REPORT_PATH)

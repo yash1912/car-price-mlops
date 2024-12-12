@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/948899775963930336/b25686d1d8f54e3eafcbcbb18cc4e53a/artifacts
+end_time: 1733990790124
+entry_point_name: ''
+experiment_id: '948899775963930336'
+lifecycle_stage: active
+run_id: b25686d1d8f54e3eafcbcbb18cc4e53a
+run_name: overjoyed-snake-679
+run_uuid: b25686d1d8f54e3eafcbcbb18cc4e53a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733990779722
+status: 3
+tags: []
+user_id: yash

@@ -12,12 +12,10 @@ from typing import Optional
 
 app = FastAPI()
 X_train_regression = pd.read_csv("data/X_train_regression.csv")
-X_train = pd.read_csv("data/X_train.csv")
-y_test = pd.read_csv("data/y_test.csv")
+X_train_clean = pd.read_csv("data/X_train_clean.csv")
+X_test_regression = pd.read_csv("data/X_test_regression.csv")
 # Load the pre-trained model
 model = pickle.load(open(config.MODEL_PATH, 'rb'))
-X_train[config.PREDICTION_COLUMN] = model.predict(X_train)
-X_train['Selling_price'] = pd.read_csv("data/y_train.csv")
 
 # Health check route
 @app.get("/")
@@ -101,10 +99,10 @@ async def predict_batch(file: UploadFile = File(...)):
 
         # Generate predictions
         preprocessed_data[config.PREDICTION_COLUMN] = model.predict(preprocessed_data)
-        preprocessed_data[config.TARGET_COLUMN] = y_test.values
         # Save the predictions as a new CSV
         predictions_file = "predictions.csv"
         preprocessed_data.to_csv(predictions_file, index=False)
+        preprocessed_data[config.TARGET_COLUMN] = X_test_regression[config.TARGET_COLUMN]
 
         # Column mapping for Evidently
         column_mapping = ColumnMapping()
@@ -113,7 +111,7 @@ async def predict_batch(file: UploadFile = File(...)):
 
         # Generate Data Drift Report
         data_drift_report = Report(metrics=[DataDriftPreset()])
-        data_drift_report.run(reference_data=X_train, current_data=preprocessed_data, column_mapping=column_mapping)
+        data_drift_report.run(reference_data=X_train_clean, current_data=preprocessed_data.drop(columns=[config.PREDICTION_COLUMN, config.TARGET_COLUMN], axis=1, errors='ignore'), column_mapping=column_mapping)
         data_drift_path = config.PREDICTED_DATA_DRIFT_REPORT_PATH
         data_drift_report.save_html(data_drift_path)
 
