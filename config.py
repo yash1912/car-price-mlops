@@ -1,0 +1,8 @@
+DATASET_PATH = "data/car data.csv"
+MLFLOW_EXPERIMENT_NAME = "Car Price Prediction"
+LAKEFS_REPO_NAME = "mlops-final"
+MODEL_PATH = "model.pkl"
+MONITORING_REPORT_PATH = "monitoring_report.html"
+REGRESSION_REPORT_PATH = "regression_report.html"
+TARGET_COLUMN = "Selling_Price"  
+PREDICTION_COLUMN = "price_preds"

@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request
-import jsonify
-import requests
 import pickle
 import numpy as np
-import sklearn
+import config
+import utils
+
 app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+model = utils.load_model(config.MODEL_PATH) # Load model using utils function
 @app.route('/',methods=['GET'])
 def Home():
     return render_template('index.html')

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/799813365223207315/6e0fadaf99a34b18b2e59e3fe79fb1cb/artifacts
+end_time: 1733973939375
+entry_point_name: ''
+experiment_id: '799813365223207315'
+lifecycle_stage: active
+run_id: 6e0fadaf99a34b18b2e59e3fe79fb1cb
+run_name: capable-duck-468
+run_uuid: 6e0fadaf99a34b18b2e59e3fe79fb1cb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733973936247
+status: 4
+tags: []
+user_id: yash

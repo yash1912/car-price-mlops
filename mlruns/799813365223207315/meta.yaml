@@ -1,0 +1,6 @@
+artifact_location: file:///home/yash/mlops/final/mlruns/799813365223207315
+creation_time: 1733973041573
+experiment_id: '799813365223207315'
+last_update_time: 1733973041573
+lifecycle_stage: active
+name: Car Price Prediction

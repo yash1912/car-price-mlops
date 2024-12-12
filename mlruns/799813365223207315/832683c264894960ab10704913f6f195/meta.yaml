@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/799813365223207315/832683c264894960ab10704913f6f195/artifacts
+end_time: 1733975268894
+entry_point_name: ''
+experiment_id: '799813365223207315'
+lifecycle_stage: active
+run_id: 832683c264894960ab10704913f6f195
+run_name: stately-gnat-280
+run_uuid: 832683c264894960ab10704913f6f195
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733975259065
+status: 4
+tags: []
+user_id: yash

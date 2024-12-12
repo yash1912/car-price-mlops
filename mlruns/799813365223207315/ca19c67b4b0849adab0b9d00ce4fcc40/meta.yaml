@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/799813365223207315/ca19c67b4b0849adab0b9d00ce4fcc40/artifacts
+end_time: 1733973365800
+entry_point_name: ''
+experiment_id: '799813365223207315'
+lifecycle_stage: active
+run_id: ca19c67b4b0849adab0b9d00ce4fcc40
+run_name: classy-skink-723
+run_uuid: ca19c67b4b0849adab0b9d00ce4fcc40
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733973365033
+status: 4
+tags: []
+user_id: yash

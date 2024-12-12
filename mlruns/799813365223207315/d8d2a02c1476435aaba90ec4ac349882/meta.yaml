@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/799813365223207315/d8d2a02c1476435aaba90ec4ac349882/artifacts
+end_time: 1733975650880
+entry_point_name: ''
+experiment_id: '799813365223207315'
+lifecycle_stage: active
+run_id: d8d2a02c1476435aaba90ec4ac349882
+run_name: learned-pig-810
+run_uuid: d8d2a02c1476435aaba90ec4ac349882
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733975647509
+status: 4
+tags: []
+user_id: yash

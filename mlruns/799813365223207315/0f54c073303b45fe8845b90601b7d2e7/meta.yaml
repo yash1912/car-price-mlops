@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/799813365223207315/0f54c073303b45fe8845b90601b7d2e7/artifacts
+end_time: 1733974418456
+entry_point_name: ''
+experiment_id: '799813365223207315'
+lifecycle_stage: active
+run_id: 0f54c073303b45fe8845b90601b7d2e7
+run_name: capricious-yak-204
+run_uuid: 0f54c073303b45fe8845b90601b7d2e7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733974413197
+status: 4
+tags: []
+user_id: yash

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yash/mlops/final/mlruns/799813365223207315/218c2cccd8124022b8087c3f5a3108ba/artifacts
+end_time: 1733974314417
+entry_point_name: ''
+experiment_id: '799813365223207315'
+lifecycle_stage: active
+run_id: 218c2cccd8124022b8087c3f5a3108ba
+run_name: treasured-worm-12
+run_uuid: 218c2cccd8124022b8087c3f5a3108ba
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1733974309243
+status: 4
+tags: []
+user_id: yash
