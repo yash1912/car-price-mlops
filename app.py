@@ -20,6 +20,12 @@ model = pickle.load(open(config.MODEL_PATH, 'rb'))
 # Health check route
 @app.get("/")
 def read_root():
+    """
+    Health check route.
+
+    Returns:
+        dict: API status message.
+    """
     return {"message": "API is up and running!"}
 
 # Predict route for a single example
@@ -34,6 +40,23 @@ def predict_single(
     Transmission: str = Form(...)
 ):
     # Preprocess inputs
+    """
+    Predicts the selling price of a car given its features.
+
+    Args:
+        Year (int): The year of manufacture.
+        Present_Price (float): The current market price of the car.
+        Kms_Driven (int): The number of kilometers the car has been driven.
+        Owner (int): The number of owners the car has had.
+        Fuel_Type (str): The type of fuel the car uses.
+        Seller_Type (str): The type of seller.
+        Transmission (str): The type of transmission.
+
+    Returns:
+        dict: A dictionary with a single key-value pair, where the key is
+            "predicted_selling_price" and the value is the predicted selling
+            price of the car.
+    """
     Fuel_Type_Diesel = 0
     Fuel_Type_Petrol = 0
     if Fuel_Type == 'Petrol':
@@ -62,6 +85,29 @@ def predict_single(
 @app.post("/predict_batch")
 async def predict_batch(file: UploadFile = File(...)):
     # Load the uploaded file
+    """
+    Handle batch prediction requests by accepting a CSV file upload,
+    preprocessing the data, generating predictions, and creating
+    Evidently reports.
+
+    Parameters:
+    - file (UploadFile): The uploaded CSV file containing test data.
+
+    Returns:
+    - HTMLResponse: A response containing links to generated reports.
+
+    The function performs the following steps:
+    1. Saves the uploaded file to a temporary location.
+    2. Reads the file into a DataFrame.
+    3. Preprocesses the data by encoding categorical variables and
+       calculating derived features.
+    4. Generates predictions using a pre-trained model.
+    5. Saves predictions to a CSV file.
+    6. Creates and saves Evidently reports for data drift, regression, 
+       and label drift analysis.
+    7. Returns an HTML response with links to view the generated reports.
+    8. Cleans up temporary files.
+    """
     file_location = f"temp_{file.filename}"
     with open(file_location, "wb") as f:
         f.write(file.file.read())
@@ -71,30 +117,30 @@ async def predict_batch(file: UploadFile = File(...)):
         X_test = pd.read_csv(file_location)
 
         # Preprocess the data
-        # def preprocess_batch_data(row):
-        #     Fuel_Type_Diesel = 0
-        #     Fuel_Type_Petrol = 0
-        #     if row['Fuel_Type'] == 'Petrol':
-        #         Fuel_Type_Petrol = 1
-        #     elif row['Fuel_Type'] == 'Diesel':
-        #         Fuel_Type_Diesel = 1
+        def preprocess_batch_data(row):
+            Fuel_Type_Diesel = 0
+            Fuel_Type_Petrol = 0
+            if row['Fuel_Type'] == 'Petrol':
+                Fuel_Type_Petrol = 1
+            elif row['Fuel_Type'] == 'Diesel':
+                Fuel_Type_Diesel = 1
 
-        #     Year = 2020 - row['Year']
-        #     Seller_Type_Individual = 1 if row['Seller_Type'] == 'Individual' else 0
-        #     Transmission_Mannual = 1 if row['Transmission'] == 'Manual' else 0
+            Year = 2020 - row['Year']
+            Seller_Type_Individual = 1 if row['Seller_Type'] == 'Individual' else 0
+            Transmission_Mannual = 1 if row['Transmission'] == 'Manual' else 0
 
-        #     return [
-        #         row['Present_Price'], row['Kms_Driven'], row['Owner'], Year,
-        #         Fuel_Type_Diesel, Fuel_Type_Petrol, Seller_Type_Individual, Transmission_Mannual
-        #     ]
+            return [
+                row['Present_Price'], row['Kms_Driven'], row['Owner'], Year,
+                Fuel_Type_Diesel, Fuel_Type_Petrol, Seller_Type_Individual, Transmission_Mannual
+            ]
 
-        # # Apply preprocessing to each row
-        # preprocessed_data = X_test.apply(preprocess_batch_data, axis=1, result_type='expand')
-        # preprocessed_data.columns = [
-        #     'Present_Price', 'Kms_Driven', 'Owner', 'Year',
-        #     'Fuel_Type_Diesel', 'Fuel_Type_Petrol',
-        #     'Seller_Type_Individual', 'Transmission_Mannual'
-        # ]
+        # Apply preprocessing to each row
+        preprocessed_data = X_test.apply(preprocess_batch_data, axis=1, result_type='expand')
+        preprocessed_data.columns = [
+            'Present_Price', 'Kms_Driven', 'Owner', 'Year',
+            'Fuel_Type_Diesel', 'Fuel_Type_Petrol',
+            'Seller_Type_Individual', 'Transmission_Mannual'
+        ]
         preprocessed_data = X_test.copy()
 
         # Generate predictions
@@ -128,13 +174,6 @@ async def predict_batch(file: UploadFile = File(...)):
         label_drift_path = config.PREDICTED_LABEL_DRIFT_REPORT_PATH
         label_drift_report.save_html(label_drift_path)
 
-        # return {
-        #     "status": "success",
-        #     "message": "Predictions and reports generated successfully.",
-        #     "predictions_file": predictions_file,
-        #     "data_drift_report": data_drift_path,
-        #     "regression_report": regression_path
-        # }
         return HTMLResponse(content=f"""
         <html>
             <head><title>Reports</title></head>
